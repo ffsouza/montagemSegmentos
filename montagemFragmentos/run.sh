@@ -7,6 +7,7 @@ export EXECUTABLE=./Debug/montagemFragmentos
 rm $OUTPUT -rf
 mkdir $OUTPUT
 
+$EXECUTABLE -i $INPUT/n500_t50.dat  -o $OUTPUT/n15_t50_d5.out -ol 5 -e 0.0
 $EXECUTABLE -i $INPUT/n500_t50.dat  -o $OUTPUT/n500_t50.out -ol 5 -e 0.0
 $EXECUTABLE -i $INPUT/n100_t50_d5.dat -o $OUTPUT/n100_t50_d5.ol3_e0.out -ol 3 -e 0.0
 $EXECUTABLE -i $INPUT/n100_t50_d5.dat -o $OUTPUT/n100_t50_d5.ol5_e0.out -ol 5 -e 0.0

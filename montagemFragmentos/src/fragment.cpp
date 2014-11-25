@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "fragment.h"
 
-Fragment* buildFragment(int id, char* sequenceBuffer, uint n) {
+Fragment* buildFragment(long id, char* sequenceBuffer, uint n) {
 	Fragment* fragment = (Fragment*) malloc(sizeof(Fragment));
 	fragment-> id = id;
 	fragment->sequence = (char*) malloc(sizeof(char) * (n+1));

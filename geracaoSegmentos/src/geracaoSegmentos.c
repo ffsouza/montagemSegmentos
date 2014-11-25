@@ -17,7 +17,7 @@ void addSequence(FILE* fout, int size, int stdDeviation, char*buffer);
 
 char* str_random(char* baseData, int nBaseData, int sequenceSize, char* buffer);
 int main(int argc, char** argv) {
-	puts("iniciando montagem de fragmentos...");
+	puts("iniciando geração de fragmentos...");
 	/*check command line arguments */
 	clearParams();
 	if (loadParams(argc, argv) != EXIT_SUCCESS) {

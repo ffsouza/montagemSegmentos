@@ -7,6 +7,7 @@ export OUTPUT=./output
 rm $OUTPUT -rf
 mkdir $OUTPUT
 
+./Debug/geracaoSegmentos -o $OUTPUT/n15_t50_d5.dat -n 15 -t 50 -d 5
 ./Debug/geracaoSegmentos -o $OUTPUT/n500_t50.dat  -n 500 -t 50
 ./Debug/geracaoSegmentos -o $OUTPUT/n100_t50_d5.dat  -n 100 -t 50 -d 5
 ./Debug/geracaoSegmentos -o $OUTPUT/n1000_t50.dat  -n 1000 -t 50

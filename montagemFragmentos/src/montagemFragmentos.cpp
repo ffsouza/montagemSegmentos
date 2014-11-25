@@ -54,10 +54,14 @@ int main(int argc, char** argv) {
 	seqOverlap = getParamSequenceOverlap();
 
 	FILE* fileInput = fopen(input, "r");
+	Fragment* head ;
+	printf("leitura de fragmentos: %s\n",input);
 
-	Fragment* head = readFragments(fileInput, 50);
-	long n = head->id + 1;
+	long n = readFragments(fileInput, 150, &head);
+	printf("Iniciando montagem de fragmentos: %s\n",input);
 	distanceMatrix = initializeDistanceMatrix(n);
+
+	printf("Iniciando processamento\n");
 	processFragments(head);
 
 	//processDistancesMatrix();

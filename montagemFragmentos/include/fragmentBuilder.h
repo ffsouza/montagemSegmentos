@@ -10,7 +10,7 @@
 
 #include "fragment.h"
 
-Fragment* readFragments(FILE* in, uint maxSize);
+int readFragments(FILE* in, uint maxSize, Fragment**);
 
 
 #endif /* FRAGMENTBUILDER_H_ */
