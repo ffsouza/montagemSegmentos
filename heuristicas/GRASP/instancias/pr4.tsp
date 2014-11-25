@@ -1,0 +1,14 @@
+NAME : pr3
+COMMENT : 3-city problem (Padberg/Rinaldi)
+TYPE : TSP
+DIMENSION : 7
+EDGE_WEIGHT_TYPE : EUC_2D
+NODE_COORD_SECTION
+1 10 1
+2 10 2
+3 10 3
+4 5 10
+5 5 11
+6 5 12
+7 5 5
+EOF
