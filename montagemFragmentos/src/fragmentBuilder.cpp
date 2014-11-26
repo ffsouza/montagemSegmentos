@@ -21,8 +21,11 @@ long readFragments(FILE* in, uint maxSize, Fragment** root) {
 		Fragment * fragment = buildFragment(id++, buffer, readSize);
 		Fragment* node = head = fragment;
 
-		while (fscanf(in, "%s", buffer)) {
+		while (fscanf(in, "%s", buffer) > 0) {
 			readSize = strlen(buffer);
+			if(readSize == 0){
+				break;
+			}
 			fragment = buildFragment(id++, buffer, readSize);
 			node->next = fragment;
 			node = fragment;
