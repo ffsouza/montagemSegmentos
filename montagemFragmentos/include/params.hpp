@@ -8,9 +8,6 @@
 #ifndef PARAMS_MONTAGEM_H_
 #define PARAMS_MONTAGEM_H_
 
-//Comment it to disable debug messages
-#define DEBUG_ENABLED
-
 int loadParams(int argc, char **argv);
 int checkIfState(char * value);
 void treatParam(char * value);

@@ -6,6 +6,13 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
+/**
+ * To run use: E.g: motagemFragments -i ./input/n5000_t25_d5.dat-o ./output/result.out -ol 3 -e 0.2
+ */
+
+//Comment it to disable debug messages
+//#define DEBUG_ENABLED
+
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +41,8 @@ void processFragments(Fragment* fragmentsSequence);
 
 void processFragmentSequence(Fragment* sequence);
 
+long getMatrixPosition(long x, bool reverse1, long y, bool reverse2) ;
+
 long* distanceMatrix;
 long matrixN;
 long* initializeDistanceMatrix(long n);
@@ -61,12 +70,17 @@ int main(int argc, char** argv) {
 	fclose(fileInput);
 	printf("Iniciando montagem de fragmentos: %s\n", input);
 	distanceMatrix = initializeDistanceMatrix(n);
-
-	printf("Iniciando processamento\n");
+	if(distanceMatrix == NULL){
+		perror("Incapaz de alocar matrix de distancias. Erro: ");
+		return 1;
+	}
+	printf("Processando distancias\n");
 	processFragments(head);
 
+	printf("Calculando melhor sequenciamento\n");
 	//processDistancesMatrix();
 
+	printf("Saída\n");
 	//printOutput
 
 	//Free memory
@@ -81,15 +95,13 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-long getMatrixPosition(long x, long y);
-
 long* initializeDistanceMatrix(long n) {
 	matrixN = n;
-	return (long*) malloc(sizeof(long) * n * n);
+	return (long*) malloc(sizeof(long) * 4 * n * n);
 }
 
-long getMatrixPosition(long x, bool reverse, long y, bool reverse2) {
-	return x * matrixN + y + (reverse2 ? 1 : 0);
+long getMatrixPosition(long x, bool reverse1, long y, bool reverse2) {
+	return (y + reverse2 ? 1 : 0) * (2 * matrixN) + x + (reverse1 ? 1 : 0);
 }
 void processFragmentSequence(Fragment* fragment) {
 	float seqError = getParamSequenceError();
@@ -142,12 +154,10 @@ long calculateDistance(Fragment* fragment1, bool reverse1, Fragment* fragment2,
 		overlap++;
 	}
 #ifdef DEBUG_ENABLED
-	if (bestOverlap > 0) {
 		printf(
 				"bestOverlap:%d\nSeqA(%ld) reverse %s: %s\nSeqB(%ld) reverse: %s: %s\n",
 				bestOverlap, fragment1->id, reverse1 ? "true" : "false", seq1,
 				fragment2->id, reverse2 ? "true" : "false", seq2);
-	}
 #endif
 	return bestOverlap;
 }
@@ -166,13 +176,25 @@ void compareFragments(Fragment* fragment1, Fragment* fragment2, int overlap,
 			seqError);
 	distanceMatrix[getMatrixPosition(id1, false, id2, false)] = dist;
 
+	dist = calculateDistance(fragment1, false, fragment2, true, overlap,
+			seqError);
+	distanceMatrix[getMatrixPosition(id1, false, id2, true)] = dist;
+
 	dist = calculateDistance(fragment1, true, fragment2, false, overlap,
 			seqError);
 	distanceMatrix[getMatrixPosition(id1, true, id2, false)] = dist;
 
+	dist = calculateDistance(fragment1, true, fragment2, true, overlap,
+			seqError);
+	distanceMatrix[getMatrixPosition(id1, true, id2, true)] = dist;
+
 	dist = calculateDistance(fragment2, false, fragment1, false, overlap,
 			seqError);
 	distanceMatrix[getMatrixPosition(id2, false, id1, false)] = dist;
+
+	dist = calculateDistance(fragment2, false, fragment1, true, overlap,
+			seqError);
+	distanceMatrix[getMatrixPosition(id2, false, id1, true)] = dist;
 
 	dist = calculateDistance(fragment2, true, fragment1, false, overlap,
 			seqError);
