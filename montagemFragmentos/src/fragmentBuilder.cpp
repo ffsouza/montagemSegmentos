@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "fragment.h"
+#include "fragment.hpp"
 
 long readFragments(FILE* in, uint maxSize, Fragment** root) {
 	char* buffer = (char*) malloc(sizeof(char) * (1 + maxSize));

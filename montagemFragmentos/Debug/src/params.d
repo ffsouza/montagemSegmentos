@@ -1,3 +1,3 @@
-src/params.d: ../src/params.cpp .././include/params.h
+src/params.d: ../src/params.cpp .././include/params.hpp
 
-.././include/params.h:
+.././include/params.hpp:

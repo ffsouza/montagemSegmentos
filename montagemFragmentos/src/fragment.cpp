@@ -6,7 +6,7 @@
  */
 #include <string.h>
 #include <stdlib.h>
-#include "fragment.h"
+#include "fragment.hpp"
 
 Fragment* buildFragment(long id, char* sequenceBuffer, uint n) {
 	Fragment* fragment = (Fragment*) malloc(sizeof(Fragment));
@@ -15,5 +15,6 @@ Fragment* buildFragment(long id, char* sequenceBuffer, uint n) {
 	fragment->next = NULL;
 	strncpy(fragment->sequence, sequenceBuffer, n);
 	fragment->sequence[n] = '\0';
+	fragment->sequenceSize = n;
 	return fragment;
 }

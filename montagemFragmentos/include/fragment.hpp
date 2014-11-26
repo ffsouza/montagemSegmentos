@@ -13,6 +13,7 @@ typedef unsigned int uint;
 typedef struct t_fragment {
 	long id;
 	char* sequence;
+	int sequenceSize;
 	struct t_fragment* next;
 } Fragment;
 

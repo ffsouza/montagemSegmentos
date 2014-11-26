@@ -10,9 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "params.h"
-#include "fragmentBuilder.h"
-#include "fragment.h"
+#include "params.hpp"
+#include "fragmentBuilder.hpp"
+#include "fragment.hpp"
 
 using namespace std;
 
@@ -48,17 +48,17 @@ int main(int argc, char** argv) {
 		perror("ERROR");
 		return 0;
 	}
-	printf("Iniciando montagem de fragmentos: %s\n",input);
+	printf("Iniciando montagem de fragmentos: %s\n", input);
 
 	seqError = getParamSequenceError();
 	seqOverlap = getParamSequenceOverlap();
 
 	FILE* fileInput = fopen(input, "r");
-	Fragment* head ;
-	printf("leitura de fragmentos: %s\n",input);
+	Fragment* head;
+	printf("leitura de fragmentos: %s\n", input);
 
 	long n = readFragments(fileInput, 150, &head);
-	printf("Iniciando montagem de fragmentos: %s\n",input);
+	printf("Iniciando montagem de fragmentos: %s\n", input);
 	distanceMatrix = initializeDistanceMatrix(n);
 
 	printf("Iniciando processamento\n");
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 	//Free memory
 	Fragment* node = head;
 	Fragment* aux;
-	while(node != NULL){
+	while (node != NULL) {
 		aux = node->next;
 		free(node);
 		node = aux;
@@ -111,29 +111,47 @@ void processFragments(Fragment* head) {
 	}
 }
 
-long calculateDistance(Fragment* fragment1, bool reverse1, Fragment* fragment2, bool reverse2, int overlap,
-		float seqError) {
+long calculateDistance(Fragment* fragment1, bool reverse1, Fragment* fragment2,
+		bool reverse2, int minOverlap, float seqError) {
+	int i, j;
 
-	//TODO:
 	//Calcular distancias entre fragmentos
+	char* seq1 = fragment1->sequence;
+	char* seq2 = fragment2->sequence;
+	int n1 = fragment1->sequenceSize;
+	int n2 = fragment2->sequenceSize;
+	int overlap = minOverlap;
 
-	return random() % (overlap - (int) (overlap * seqError));
+	int hit, miss;
+	int bestOverlap = 0;
+	while (overlap < n1 && overlap < n2) {
+		hit = miss = 0;
+		for (i = n1 - overlap, j = 0; j < overlap; i++, j++) {
+			seq1[i] == seq2[j] ? hit++ : miss++;
+		}
+		if(miss/((float)overlap) <=  seqError){
+			bestOverlap = overlap;
+		}
+		overlap++;
+	}
+	return bestOverlap;
 }
 
 void compareFragments(Fragment* fragment1, Fragment* fragment2, int overlap,
-		float seqError) {
+	float seqError) {
 
-	int id1 = fragment1->id;
-	int id2 = fragment2->id;
+int id1 = fragment1->id;
+int id2 = fragment2->id;
 
-	long dist = calculateDistance(fragment1, false, fragment2, false, overlap, seqError);
-	distanceMatrix[getMatrixPosition(id1, id2)] = dist;
-	dist = calculateDistance(fragment2, false, fragment1, false, overlap, seqError);
-	distanceMatrix[getMatrixPosition(id2, id1)] = dist;
+long dist = calculateDistance(fragment1, false, fragment2, false, overlap,
+		seqError);
+distanceMatrix[getMatrixPosition(id1, id2)] = dist;
+dist = calculateDistance(fragment2, false, fragment1, false, overlap, seqError);
+distanceMatrix[getMatrixPosition(id2, id1)] = dist;
 
-	dist = calculateDistance(fragment1, false, fragment2, true, overlap, seqError);
-	distanceMatrix[getMatrixPosition(id1, id2) + 1] = dist;
-	dist = calculateDistance(fragment2, false, fragment1, true, overlap, seqError);
-	distanceMatrix[getMatrixPosition(id2, id1) + 1] = dist;
+dist = calculateDistance(fragment1, false, fragment2, true, overlap, seqError);
+distanceMatrix[getMatrixPosition(id1, id2) + 1] = dist;
+dist = calculateDistance(fragment2, false, fragment1, true, overlap, seqError);
+distanceMatrix[getMatrixPosition(id2, id1) + 1] = dist;
 
 }

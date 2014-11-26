@@ -1,3 +1,4 @@
-src/fragmentBuilder.d: ../src/fragmentBuilder.cpp .././include/fragment.h
+src/fragmentBuilder.d: ../src/fragmentBuilder.cpp \
+ .././include/fragment.hpp
 
-.././include/fragment.h:
+.././include/fragment.hpp:

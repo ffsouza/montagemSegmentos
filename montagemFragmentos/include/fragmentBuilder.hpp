@@ -8,7 +8,7 @@
 #ifndef FRAGMENTBUILDER_H_
 #define FRAGMENTBUILDER_H_
 
-#include "fragment.h"
+#include "fragment.hpp"
 
 int readFragments(FILE* in, uint maxSize, Fragment**);
 

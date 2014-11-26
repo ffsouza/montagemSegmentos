@@ -1,3 +1,3 @@
-src/fragment.d: ../src/fragment.cpp .././include/fragment.h
+src/fragment.d: ../src/fragment.cpp .././include/fragment.hpp
 
-.././include/fragment.h:
+.././include/fragment.hpp:

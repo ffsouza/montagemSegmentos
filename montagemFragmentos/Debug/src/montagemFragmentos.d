@@ -1,11 +1,11 @@
 src/montagemFragmentos.d: ../src/montagemFragmentos.cpp \
- .././include/params.h .././include/fragmentBuilder.h \
- .././include/fragment.h .././include/fragment.h
+ .././include/params.hpp .././include/fragmentBuilder.hpp \
+ .././include/fragment.hpp .././include/fragment.hpp
 
-.././include/params.h:
+.././include/params.hpp:
 
-.././include/fragmentBuilder.h:
+.././include/fragmentBuilder.hpp:
 
-.././include/fragment.h:
+.././include/fragment.hpp:
 
-.././include/fragment.h:
+.././include/fragment.hpp:
