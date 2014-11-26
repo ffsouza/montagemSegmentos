@@ -101,7 +101,8 @@ long* initializeDistanceMatrix(long n) {
 }
 
 long getMatrixPosition(long x, bool reverse1, long y, bool reverse2) {
-	return (y + reverse2 ? 1 : 0) * (2 * matrixN) + x + (reverse1 ? 1 : 0);
+	//lin * matrixSize + col
+	return (y + reverse2 ? 1 : 0) * (2 * matrixN) +  2*x + (reverse1 ? 1 : 0);
 }
 void processFragmentSequence(Fragment* fragment) {
 	float seqError = getParamSequenceError();
