@@ -28,3 +28,7 @@
 *.i*86
 *.x86_64
 *.hex
+montagemFragmentos/Debug/montagemFragmentos
+montagemFragmentos/Debug/*.o
+montagemFragmentos/Debug/*.d
+*/*.d
