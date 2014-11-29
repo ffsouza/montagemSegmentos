@@ -12,11 +12,12 @@
 
 //Comment it to disable debug messages
 //#define DEBUG_ENABLED
-
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <string.h>
+
 #include "params.hpp"
 #include "fragmentBuilder.hpp"
 #include "fragment.hpp"
@@ -32,6 +33,8 @@ typedef struct t_SeqFragment {
 	int overlap;
 } SeqFragment;
 
+char** LIST_SEQUENCES;
+
 void processFragments(Fragment* head);
 
 void compareFragments(Fragment* fragment1, Fragment* fragment2, int overlap,
@@ -41,13 +44,37 @@ void processFragments(Fragment* fragmentsSequence);
 
 void processFragmentSequence(Fragment* sequence);
 
-long getMatrixPosition(long x, bool reverse1, long y, bool reverse2) ;
+char* getSequence(long sequence, bool reversed);
+
+long getMatrixPosition(long x, bool reverse1, long y, bool reverse2);
 
 long* distanceMatrix;
 long matrixN;
 long* initializeDistanceMatrix(long n);
 
+void printSequence(FILE *fout, int* bestSequence, long sequenceSize);
+
+long processBestSequence(int** bestSequence, long* sequenceSize);
+
+void freeFragmentsMemory(Fragment* head) {
+	if (LIST_SEQUENCES != NULL) {
+		free(LIST_SEQUENCES);
+		LIST_SEQUENCES = NULL;
+	}
+	Fragment* node = head;
+	Fragment* aux;
+	while (node != NULL) {
+		aux = node->next;
+		free(node);
+		node = aux;
+	}
+}
+
 int main(int argc, char** argv) {
+	double elapsedTime; //check ellapsed time
+	struct timeval t_inicial, t_final, ti_distancias, tf_distancias,
+			ti_processamento;
+
 	clearParams();
 	loadParams(argc, argv);
 
@@ -57,6 +84,19 @@ int main(int argc, char** argv) {
 		perror("ERROR");
 		return 0;
 	}
+	char* outputFile = getParamOutput();
+	FILE* foutput;
+	if (outputFile == NULL) {
+		foutput = stdout;
+	} else {
+		foutput = fopen(outputFile, "w+");
+		if (foutput == NULL) {
+			perror(
+					"Não foi possivel abrir o arquivo de saída. Utilizando a saida padrão.");
+			foutput = stdout;
+		}
+	}
+
 	printf("Iniciando montagem de fragmentos: %s\n", input);
 
 	seqError = getParamSequenceError();
@@ -69,28 +109,59 @@ int main(int argc, char** argv) {
 	long n = readFragments(fileInput, 150, &head);
 	fclose(fileInput);
 	printf("Iniciando montagem de fragmentos: %s\n", input);
+
+	gettimeofday(&t_inicial, NULL);
 	distanceMatrix = initializeDistanceMatrix(n);
-	if(distanceMatrix == NULL){
+	if (distanceMatrix == NULL) {
 		perror("Incapaz de alocar matrix de distancias. Erro: ");
+		freeFragmentsMemory(head);
 		return 1;
 	}
+
 	printf("Processando distancias\n");
+	gettimeofday(&ti_distancias, NULL);
+	LIST_SEQUENCES = (char**) malloc(sizeof(char*) * n);
 	processFragments(head);
+	gettimeofday(&tf_distancias, NULL);
 
-	printf("Calculando melhor sequenciamento\n");
-	//processDistancesMatrix();
+	printf("Calculando melhor sequênciamento\n");
+	gettimeofday(&ti_processamento, NULL);
 
-	printf("Saída\n");
-	//printOutput
+	int *bestSequence;
+	long sequenceSize = 0l;
+	long bestValue = processBestSequence(&bestSequence, &sequenceSize);
+
+	gettimeofday(&t_final, NULL);
+
+	printf("Imprimindo Resultados:\n");
+
+	fprintf(foutput, "Tamanho da melhor sequência: %ld\n", bestValue);
+
+	printSequence(foutput, bestSequence, sequenceSize);
+
+	//calculate the elapsed time
+	elapsedTime = (tf_distancias.tv_sec - ti_distancias.tv_sec) * 1000000; // sec to ms
+	elapsedTime += (tf_distancias.tv_usec - ti_distancias.tv_usec); // us to ms
+	fprintf(foutput, "Tempo calculo das distancias\t\t\t%.1lf ms\n",
+			elapsedTime);
+
+	elapsedTime = (t_final.tv_sec - ti_processamento.tv_sec) * 1000000; // sec to ms
+	elapsedTime += (t_final.tv_usec - ti_processamento.tv_usec); // us to ms
+	fprintf(foutput, "Tempo processamento da sequência\t\t%.1lf ms\n",
+			elapsedTime);
+
+	elapsedTime = (t_final.tv_sec - ti_distancias.tv_sec) * 1000000; // sec to ms
+	elapsedTime += (t_final.tv_usec - ti_distancias.tv_usec); // us to ms
+	fprintf(foutput, "Tempo total de processamento\t\t\t%.1lf ms\n",
+			elapsedTime);
+
+	elapsedTime = (t_final.tv_sec - t_inicial.tv_sec) * 1000000; // sec to ms
+	elapsedTime += (t_final.tv_usec - t_inicial.tv_usec); // us to ms
+	fprintf(foutput, "Tempo total (incluindo leitura dos dados)\t%.1lf ms\n",
+			elapsedTime);
 
 	//Free memory
-	Fragment* node = head;
-	Fragment* aux;
-	while (node != NULL) {
-		aux = node->next;
-		free(node);
-		node = aux;
-	}
+	freeFragmentsMemory(head);
 	free(distanceMatrix);
 	return 0;
 }
@@ -102,7 +173,7 @@ long* initializeDistanceMatrix(long n) {
 
 long getMatrixPosition(long x, bool reverse1, long y, bool reverse2) {
 	//lin * matrixSize + col
-	return (y + reverse2 ? 1 : 0) * (2 * matrixN) +  2*x + (reverse1 ? 1 : 0);
+	return (y + reverse2 ? 1 : 0) * (2 * matrixN) + 2 * x + (reverse1 ? 1 : 0);
 }
 void processFragmentSequence(Fragment* fragment) {
 	float seqError = getParamSequenceError();
@@ -111,15 +182,29 @@ void processFragmentSequence(Fragment* fragment) {
 	Fragment* currentFrag = fragment->next;
 	while (currentFrag != NULL) {
 		compareFragments(fragment, currentFrag, overlap, seqError);
-
 		currentFrag = currentFrag->next;
 	}
+}
+
+char* getSequence(long sequence, bool reversed) {
+	char* seq = LIST_SEQUENCES[sequence];
+	if (!reversed) {
+		return seq;
+	}
+	int lenght = strlen(seq);
+	char* rerveseSeq = (char*) malloc(sizeof(char) * lenght);
+	int i, j;
+	for (i = 0, j = lenght - 1; i < lenght; i++, j--) {
+		rerveseSeq[j] = seq[i];
+	}
+	return rerveseSeq;
 }
 
 void processFragments(Fragment* head) {
 	Fragment* currentFrag = head;
 
 	while (currentFrag != NULL) {
+		LIST_SEQUENCES[currentFrag->id] = currentFrag->sequence;
 		processFragmentSequence(currentFrag);
 		currentFrag = currentFrag->next;
 	}
@@ -155,10 +240,10 @@ long calculateDistance(Fragment* fragment1, bool reverse1, Fragment* fragment2,
 		overlap++;
 	}
 #ifdef DEBUG_ENABLED
-		printf(
-				"bestOverlap:%d\nSeqA(%ld) reverse %s: %s\nSeqB(%ld) reverse: %s: %s\n",
-				bestOverlap, fragment1->id, reverse1 ? "true" : "false", seq1,
-				fragment2->id, reverse2 ? "true" : "false", seq2);
+	printf(
+			"bestOverlap:%d\nSeqA(%ld) reverse %s: %s\nSeqB(%ld) reverse: %s: %s\n",
+			bestOverlap, fragment1->id, reverse1 ? "true" : "false", seq1,
+			fragment2->id, reverse2 ? "true" : "false", seq2);
 #endif
 	return bestOverlap;
 }
@@ -176,29 +261,70 @@ void compareFragments(Fragment* fragment1, Fragment* fragment2, int overlap,
 	long dist = calculateDistance(fragment1, false, fragment2, false, overlap,
 			seqError);
 	distanceMatrix[getMatrixPosition(id1, false, id2, false)] = dist;
+	distanceMatrix[getMatrixPosition(id2, true, id1, true)] = dist;
 
 	dist = calculateDistance(fragment1, false, fragment2, true, overlap,
 			seqError);
 	distanceMatrix[getMatrixPosition(id1, false, id2, true)] = dist;
+	distanceMatrix[getMatrixPosition(id2, false, id1, true)] = dist;
 
 	dist = calculateDistance(fragment1, true, fragment2, false, overlap,
 			seqError);
 	distanceMatrix[getMatrixPosition(id1, true, id2, false)] = dist;
+	distanceMatrix[getMatrixPosition(id2, true, id1, false)] = dist;
 
 	dist = calculateDistance(fragment1, true, fragment2, true, overlap,
 			seqError);
 	distanceMatrix[getMatrixPosition(id1, true, id2, true)] = dist;
-
-	dist = calculateDistance(fragment2, false, fragment1, false, overlap,
-			seqError);
 	distanceMatrix[getMatrixPosition(id2, false, id1, false)] = dist;
+}
 
-	dist = calculateDistance(fragment2, false, fragment1, true, overlap,
-			seqError);
-	distanceMatrix[getMatrixPosition(id2, false, id1, true)] = dist;
+void printSequence(FILE *fout, int* bestSequence, long sequenceSize) {
+	if (sequenceSize < 1) {
+		fprintf(fout, "sequência vazia.");
+		return;
+	}
+	fprintf(fout, "Sequência: \n");
+	int current = bestSequence[0];
+	int sequence = current / 2;
+	bool invertida = current % 2 == 1;
+	fprintf(fout, "seq: %d%s ", sequence, invertida ? " invertida\t" : "\t\t");
+	fprintf(fout, "%s", getSequence(sequence, invertida));
 
-	dist = calculateDistance(fragment2, true, fragment1, false, overlap,
-			seqError);
-	distanceMatrix[getMatrixPosition(id2, true, id1, false)] = dist;
+	long i = 1;
+	int next;
+	int nextSequence;
+	bool nextSeqInvertida;
+	while (i < sequenceSize) {
+		next = bestSequence[i];
+		nextSequence = next / 2;
+		nextSeqInvertida = next % 2 == 1;
+		long coverage = distanceMatrix[getMatrixPosition(sequence, invertida,
+				nextSequence, nextSeqInvertida)];
+		fprintf(fout, "\n[%ld] :", coverage);
+		fprintf(fout, " seq: %d%s", nextSequence,
+				nextSeqInvertida ? " invertida\t" : "\t\t");
+		fprintf(fout, "%s", getSequence(nextSequence, nextSeqInvertida));
+		current = next;
+		i++;
+	}
+	fprintf(fout, "\n");
+}
 
+long processBestSequence(int** bestSequence, long* sequenceSize) {
+	int n = 5;
+	int* seq = (int*) malloc(sizeof(int) * n);
+	//valures ímpares representam sequências invertidas
+
+	seq[0] = 1;
+	seq[1] = 4;
+	seq[2] = 7;
+	seq[3] = 10;
+	seq[4] = 15;
+
+	int bestValue = 10;
+
+	*bestSequence = seq;
+	*sequenceSize = n;
+	return bestValue;
 }

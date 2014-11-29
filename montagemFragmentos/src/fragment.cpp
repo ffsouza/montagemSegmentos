@@ -11,10 +11,9 @@
 Fragment* buildFragment(long id, char* sequenceBuffer, uint n) {
 	Fragment* fragment = (Fragment*) malloc(sizeof(Fragment));
 	fragment-> id = id;
-	fragment->sequence = (char*) malloc(sizeof(char) * (n+1));
+	fragment->sequence = (char*) malloc(sizeof(char) * n);
 	fragment->next = NULL;
 	strncpy(fragment->sequence, sequenceBuffer, n);
-	fragment->sequence[n] = '\0';
 	fragment->sequenceSize = n;
 	return fragment;
 }

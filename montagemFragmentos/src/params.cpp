@@ -56,6 +56,7 @@ float getParamSequenceError() {
  **/
 int loadParams(int argc, char **argv) {
 	int i;
+	clearParams();
 	if (argc < 1) {
 		return EXIT_FAILURE;
 	}
