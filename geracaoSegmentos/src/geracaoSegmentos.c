@@ -47,6 +47,7 @@ int main(int argc, char** argv) {
 	if (output != NULL) {
 		fclose(fout);
 	}
+	puts("geração de executada...");
 
 	return EXIT_SUCCESS;
 }
